@@ -1,0 +1,57 @@
+import os
+import pandas as pd
+import torch
+from torch.utils.data import Dataset
+
+# Shared label mappings
+LABEL_MAP = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4}
+LABEL_LETTERS = ["A", "B", "C", "D", "E"]
+
+def load_data(data_dir="../data"):
+    """
+    Loads train and test datasets.
+    Tries multiple paths to accommodate local and Kaggle and Colab environments.
+    """
+    possible_paths = [
+        "/kaggle/input/competitions/smart-mcq-solver-challenge/",  # Kaggle
+        "/content/",                                               # Google Colab
+        data_dir,
+        "../" # Fallback
+    ]
+    
+    train_df, test_df = None, None
+    for path in possible_paths:
+        train_path = os.path.join(path, "train.csv")
+        test_path = os.path.join(path, "test.csv")
+        if os.path.exists(train_path) and os.path.exists(test_path):
+            train_df = pd.read_csv(train_path).fillna("")
+            test_df = pd.read_csv(test_path).fillna("")
+            print(f"Loaded data from {path}")
+            break
+    
+    if train_df is None or test_df is None:
+        raise FileNotFoundError("Could not find train.csv and test.csv in the expected directories.")
+    
+    return train_df, test_df
+
+
+class MCQDataset(Dataset):
+    """
+    Standard PyTorch Dataset for Multiple Choice Questions.
+    Expects numerical tensors (X) and optional labels (y).
+    """
+    def __init__(self, X, y=None):
+        self.X = torch.tensor(X, dtype=torch.float32)
+        if y is not None:
+            self.y = torch.tensor(y, dtype=torch.int64)
+        else:
+            self.y = None
+    
+    def __len__(self):
+        return len(self.X)
+    
+    def __getitem__(self, idx):
+        if self.y is not None:
+            return self.X[idx], self.y[idx]
+        return self.X[idx]
+
