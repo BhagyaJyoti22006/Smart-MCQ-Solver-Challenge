@@ -55,3 +55,22 @@ class MCQDataset(Dataset):
             return self.X[idx], self.y[idx]
         return self.X[idx]
 
+
+def init_wandb(run_name, config_dict=None):
+    """
+    Initializes a Weights & Biases run.
+    """
+    import wandb
+    
+    # Check if W&B API key is set, otherwise don't crash, just warn
+    if "WANDB_API_KEY" not in os.environ:
+        print("WARNING: WANDB_API_KEY environment variable not set. wandb might prompt for login.")
+    
+    wandb.init(
+        entity="24f2002505-dl-genai-project",
+        project="24f2002505-t22026",
+        name=run_name,
+        config=config_dict
+    )
+    print(f"W&B tracking initialized for {run_name}!")
+
