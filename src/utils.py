@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
@@ -55,6 +56,25 @@ class MCQDataset(Dataset):
         if self.y is not None:
             return self.X[idx], self.y[idx]
         return self.X[idx]
+
+
+def calculate_map3(true_labels, predicted_probs):
+    """
+    Calculates Mean Average Precision @ 3 (MAP@3).
+    true_labels: list or array of true class indices
+    predicted_probs: 2D array of probability distributions across classes
+    """
+    map3_score = 0.0
+    for true_label, probs in zip(true_labels, predicted_probs):
+        # Get indices of top 3 predictions (sorted highest to lowest probability)
+        top3_preds = np.argsort(probs)[-3:][::-1]
+        # Calculate AP@3 for this sample
+        for i, p in enumerate(top3_preds):
+            if p == true_label:
+                map3_score += 1.0 / (i + 1)
+                break
+    
+    return map3_score / len(true_labels)
 
 
 def init_wandb(run_name, config_dict=None):
