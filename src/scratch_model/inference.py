@@ -1,3 +1,7 @@
+# Best model name
+BEST_MODEL_FILENAME = "scratch_model.pth"
+
+
 import os
 import sys
 import numpy as np
@@ -36,9 +40,9 @@ def main():
     X_test = extract_features(test_df, tfidf, is_train=False)
     
     # Load Trained Model
-    model_path = os.path.join(models_dir, "scratch_model.pth")
+    model_path = os.path.join(models_dir, BEST_MODEL_FILENAME)
     if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Missing model weights at {model_path}. Did you run train.py first?")
+        raise FileNotFoundError(f"Missing model weights at {model_path}. Update BEST_MODEL_FILENAME at the top of the script!")
     
     # Must instantiate the model with the exact same input_size
     input_size = X_test.shape[1]

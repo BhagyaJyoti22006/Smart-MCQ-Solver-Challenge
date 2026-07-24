@@ -7,6 +7,7 @@ from torch.utils.data import Dataset
 LABEL_MAP = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4}
 LABEL_LETTERS = ["A", "B", "C", "D", "E"]
 
+
 def load_data(data_dir="../data"):
     """
     Loads train and test datasets.
@@ -66,11 +67,12 @@ def init_wandb(run_name, config_dict=None):
     if "WANDB_API_KEY" not in os.environ:
         print("WARNING: WANDB_API_KEY environment variable not set. wandb might prompt for login.")
     
-    wandb.init(
+    run = wandb.init(
         entity="24f2002505-dl-genai-project",
         project="24f2002505-t22026",
         name=run_name,
         config=config_dict
     )
     print(f"W&B tracking initialized for {run_name}!")
+    return run
 

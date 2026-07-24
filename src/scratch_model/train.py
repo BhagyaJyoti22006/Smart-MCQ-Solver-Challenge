@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 import torch
@@ -8,10 +9,10 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import pickle
 
-# Add the root directory to the python path so we can import from src
+# Add the root directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from src.utils import load_data, MCQDataset, LABEL_MAP, LABEL_LETTERS
+from src.utils import load_data, MCQDataset, LABEL_MAP, LABEL_LETTERS, init_wandb
 from src.scratch_model.model import CustomMLP
 
 
@@ -69,51 +70,89 @@ def main():
     X_train = extract_features(train_df, tfidf)
     y_train = np.array([LABEL_MAP[ans] for ans in train_df["answer"]], dtype=np.int64)
     train_dataset = MCQDataset(X_train, y_train)
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     
-    # Model Initialization
+    # Define the distinct HPT Configurations
+    hpt_configs = [
+        {"run_name": "hpt_baseline", "lr": 1e-3, "epochs": 8, "batch_size": 32},
+        {"run_name": "hpt_lower_lr", "lr": 5e-4, "epochs": 12, "batch_size": 32},
+        {"run_name": "hpt_slow_steady", "lr": 1e-4, "epochs": 15, "batch_size": 32},
+        {"run_name": "hpt_aggressive", "lr": 5e-3, "epochs": 6, "batch_size": 32},
+        {"run_name": "hpt_large_batch", "lr": 1e-3, "epochs": 10, "batch_size": 64},
+    ]
+    
     input_size = X_train.shape[1]
-    model = CustomMLP(input_size=input_size).to(device)
-    loss_fn = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
-    EPOCHS = 8
     
-    # Training Loop
-    print("\nInitiating Training Loop...")
-    for epoch in range(EPOCHS):
-        model.train()
-        running_loss = 0.0
-        correct = 0
-        total = 0
+    # Automated Hyperparameter Tuning Loop
+    for config in hpt_configs:
+        # Format: <model_type>_<parameter_type>_<time in yymmdd_hhmmss>
+        timestamp = time.strftime("%y%m%d_%H%M%S")
+        unique_run_name = f"scratch_{config['run_name']}_{timestamp}"
+        print(f"\n{'='*50}\nStarting Experiment: {unique_run_name}\n{'='*50}")
         
-        for batch_X, batch_y in train_loader:
-            batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+        # Recreate the dataloader and model from scratch for each run
+        train_loader = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=True)
+        model = CustomMLP(input_size=input_size).to(device)
+        loss_fn = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(model.parameters(), lr=config["lr"])
+        
+        # Initialize Weights & Biases
+        run = init_wandb(
+            run_name=unique_run_name,
+            config_dict={
+                "architecture": "Custom MLP",
+                "epochs": config["epochs"],
+                "learning_rate": config["lr"],
+                "batch_size": config["batch_size"],
+                "optimizer": "Adam",
+                "features": "TF-IDF (1000 max_features)"
+            }
+        )
+        
+        # Inner Training Loop
+        for epoch in range(config["epochs"]):
+            model.train()
+            running_loss = 0.0
+            correct = 0
+            total = 0
             
-            # Step 1: Forward pass
-            y_pred = model(batch_X)
-            # Step 2: Calculate the loss
-            batch_loss = loss_fn(y_pred, batch_y)
-            # Step 3: Zero gradients from previous iteration
-            optimizer.zero_grad()
-             # Step 4: Backpropagation (compute new gradients)
-            batch_loss.backward()
-            # Step 5: Update parameters
-            optimizer.step()
+            for batch_X, batch_y in train_loader:
+                batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+                
+                # Step 1: Forward pass
+                y_pred = model(batch_X)
+                # Step 2: Calculate the loss
+                batch_loss = loss_fn(y_pred, batch_y)
+                # Step 3: Zero gradients from previous iteration
+                optimizer.zero_grad()
+                # Step 4: Backpropagation (compute new gradients)
+                batch_loss.backward()
+                # Step 5: Update parameters
+                optimizer.step()
+                
+                # Metric tracking
+                running_loss += batch_loss.item() * batch_X.size(0)
+                _, predicted = torch.max(y_pred, 1)
+                total += batch_y.size(0)
+                correct += (predicted == batch_y).sum().item()
             
-            # Metric tracking
-            running_loss += batch_loss.item() * batch_X.size(0)
-            _, predicted = torch.max(y_pred, 1)
-            total += batch_y.size(0)
-            correct += (predicted == batch_y).sum().item()
+            epoch_loss = running_loss / total
+            epoch_acc = correct / total
+            print(f"Epoch [{epoch+1}/{config['epochs']}] | Loss: {epoch_loss:.4f} | Accuracy: {epoch_acc:.4f}")
             
-        epoch_loss = running_loss / total
-        epoch_acc = correct / total
-        print(f"Epoch [{epoch+1}/{EPOCHS}] | Loss: {epoch_loss:.4f} | Training Accuracy: {epoch_acc:.4f}")
-    
-    # Save Model Weights
-    model_path = os.path.join(models_dir, "scratch_model.pth")
-    torch.save(model.state_dict(), model_path)
-    print(f"\nTraining Loop completed! Model saved to {model_path}")
+            # Log metrics to W&B
+            run.log({
+                "epoch": epoch + 1,
+                "train_loss": epoch_loss,
+                "train_accuracy": epoch_acc
+            })
+        
+        # Save Model Weights individually to be used later
+        model_path = os.path.join(models_dir, f"{unique_run_name}.pth")
+        torch.save(model.state_dict(), model_path)
+        print(f"Model saved to {model_path}")
+        
+        # Close the run so W&B knows this specific experiment is done
+        run.finish()
 
 
 if __name__ == "__main__":
