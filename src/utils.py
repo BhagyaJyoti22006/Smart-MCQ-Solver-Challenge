@@ -77,22 +77,36 @@ def calculate_map3(true_labels, predicted_probs):
     return map3_score / len(true_labels)
 
 
+class DummyRun:
+    """A dummy object that absorbs wandb calls without crashing if W&B fails to initialize."""
+    def log(self, *args, **kwargs):
+        pass
+    def finish(self):
+        pass
+
 def init_wandb(run_name, config_dict=None):
     """
     Initializes a Weights & Biases run.
+    Falls back to a DummyRun if there is no internet or wandb throws an error.
     """
-    import wandb
-    
-    # Check if W&B API key is set, otherwise don't crash, just warn
-    if "WANDB_API_KEY" not in os.environ:
-        print("WARNING: WANDB_API_KEY environment variable not set. wandb might prompt for login.")
-    
-    run = wandb.init(
-        entity="24f2002505-dl-genai-project",
-        project="24f2002505-t22026",
-        name=run_name,
-        config=config_dict
-    )
-    print(f"W&B tracking initialized for {run_name}!")
-    return run
+    try:
+        import wandb
+        
+        # Check if W&B API key is set, otherwise don't crash, just warn
+        if "WANDB_API_KEY" not in os.environ:
+            print("WARNING: WANDB_API_KEY environment variable not set. wandb might prompt for login.")
+        
+        run = wandb.init(
+            entity="24f2002505-dl-genai-project",
+            project="24f2002505-t22026",
+            name=run_name,
+            config=config_dict
+        )
+        print(f"W&B tracking initialized for {run_name}!")
+        return run
+        
+    except Exception as e:
+        print(f"\n[WARNING] W&B initialization failed (No internet or API key?): {e}")
+        print("Continuing execution WITHOUT Weights & Biases tracking...\n")
+        return DummyRun()
 
