@@ -76,12 +76,18 @@ def main():
     
     # Define the distinct HPT Configurations
     hpt_configs = [
+        # Validation Split Runs (80/20) for Metric Tracking
         {"run_name": "hpt_baseline", "lr": 1e-3, "epochs": 8, "batch_size": 32, "full_train": False},
         {"run_name": "hpt_lower_lr", "lr": 5e-4, "epochs": 12, "batch_size": 32, "full_train": False},
         {"run_name": "hpt_slow_steady", "lr": 1e-4, "epochs": 15, "batch_size": 32, "full_train": False},
         {"run_name": "hpt_aggressive", "lr": 5e-3, "epochs": 6, "batch_size": 32, "full_train": False},
         {"run_name": "hpt_large_batch", "lr": 1e-3, "epochs": 10, "batch_size": 64, "full_train": False},
-        {"run_name": "final_full_train", "lr": 1e-3, "epochs": 8, "batch_size": 32, "full_train": True},
+        # Full 100% Training Runs (Kaggle Submissions)
+        {"run_name": "full_baseline", "lr": 1e-3, "epochs": 8, "batch_size": 32, "full_train": True},
+        {"run_name": "full_lower_lr", "lr": 5e-4, "epochs": 12, "batch_size": 32, "full_train": True},
+        {"run_name": "full_slow_steady", "lr": 1e-4, "epochs": 15, "batch_size": 32, "full_train": True},
+        {"run_name": "full_aggressive", "lr": 5e-3, "epochs": 6, "batch_size": 32, "full_train": True},
+        {"run_name": "full_large_batch", "lr": 1e-3, "epochs": 10, "batch_size": 64, "full_train": True},
     ]
     
     # Automated Hyperparameter Tuning Loop
