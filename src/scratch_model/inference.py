@@ -1,5 +1,5 @@
 # Best model name
-BEST_MODEL_FILENAME = "scratch_model.pth"
+BEST_MODEL_FILENAME = "scratch_full_large_batch_260725_150933.pth"
 
 
 import os
