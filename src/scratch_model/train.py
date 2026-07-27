@@ -14,7 +14,8 @@ from torch.utils.data import DataLoader
 # Add the root directory to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from src.utils import load_data, MCQDataset, LABEL_MAP, LABEL_LETTERS, init_wandb, calculate_map3
+from src.utils import load_data, LABEL_MAP, LABEL_LETTERS, init_wandb, calculate_map3
+from src.scratch_model.dataset import MCQDataset
 from src.scratch_model.model import CustomMLP
 
 
