@@ -1,5 +1,5 @@
 # Best model name
-BEST_MODEL_FILENAME = "pretrained_model.pth"
+BEST_MODEL_DIRNAME = "pretrained_bert-base-uncased_full_baseline_260727_192523"
 
 
 import os
@@ -28,7 +28,7 @@ def main():
     
     # Load Trained Model
     models_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "models"))
-    model_dirname = BEST_MODEL_FILENAME
+    model_dirname = BEST_MODEL_DIRNAME
     if model_dirname == "LATEST":
         # Find the most recently modified directory that starts with 'pretrained_'
         pretrained_dirs = [d for d in os.listdir(models_root) if os.path.isdir(os.path.join(models_root, d)) and d.startswith("pretrained_")]
@@ -38,7 +38,7 @@ def main():
         print(f"Auto-selected latest model: {model_dirname}")
     models_dir = os.path.join(models_root, model_dirname)
     if not os.path.exists(models_dir):
-        raise FileNotFoundError(f"Missing model directory at {models_dir}. Update BEST_MODEL_FILENAME at the top of the script!")
+        raise FileNotFoundError(f"Missing model directory at {models_dir}. Update BEST_MODEL_DIRNAME at the top of the script!")
     
     # Load Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(models_dir)
