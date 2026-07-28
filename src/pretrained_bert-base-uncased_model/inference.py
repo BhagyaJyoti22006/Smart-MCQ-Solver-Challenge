@@ -8,13 +8,13 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn.functional as F
+from transformers import AutoTokenizer, AutoModelForMultipleChoice
 
 # Add the root directory to the python path so as to import from src
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from src.utils import load_data, LABEL_LETTERS
 from src.pretrained_model.dataset import HFMCQDataset
-from transformers import AutoTokenizer, AutoModelForMultipleChoice
 
 
 def main():

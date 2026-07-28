@@ -60,7 +60,8 @@ def main():
     for config in hpt_configs:
         # Format: <model_type>_<parameter_type>_<time in yymmdd_hhmmss>
         timestamp = time.strftime("%y%m%d_%H%M%S")
-        unique_run_name = f"pretrained_{PRETRAINED_MODEL}_{config['run_name']}_{timestamp}"
+        safe_model_name = PRETRAINED_MODEL.split("/")[-1].lower()
+        unique_run_name = f"pretrained_{safe_model_name}_{config['run_name']}_{timestamp}"
         print(f"\n{'='*50}\nStarting Experiment: {unique_run_name}\n{'='*50}")
         
         # Load Hugging Face Tokenizer (Must happen before dataset creation)
@@ -87,7 +88,7 @@ def main():
         run = init_wandb(
             run_name=unique_run_name,
             config_dict={
-                "architecture": PRETRAINED_MODEL,
+                "architecture": safe_model_name,
                 "epochs": config["epochs"],
                 "learning_rate": config["lr"],
                 "batch_size": config["batch_size"],
