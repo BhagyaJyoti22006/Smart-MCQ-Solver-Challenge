@@ -1,5 +1,5 @@
 # Best model name
-BEST_MODEL_DIRNAME  = "pretrained_model"
+BEST_MODEL_DIRNAME  = "pretrained_qwen2.5-0.5b_full_larger_batch_260729_084136"
 
 
 import os
