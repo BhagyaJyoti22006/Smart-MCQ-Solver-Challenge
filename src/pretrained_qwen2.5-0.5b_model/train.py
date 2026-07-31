@@ -45,6 +45,7 @@ def main():
         {"run_name": f"val_higher_lr", "lr": 2e-5, "epochs": 1, "batch_size": 2, "full_train": False},
         {"run_name": f"val_larger_batch", "lr": 1e-5, "epochs": 1, "batch_size": 4, "full_train": False},
         {"run_name": f"val_more_epochs", "lr": 1e-5, "epochs": 2, "batch_size": 2, "full_train": False},
+        {"run_name": f"val_largest_batch", "lr": 1e-5, "epochs": 1, "batch_size": 8, "full_train": False},
         
         # Full 100% Training Runs (Kaggle Submissions)
         {"run_name": f"full_baseline", "lr": 1e-5, "epochs": 1, "batch_size": 2, "full_train": True},
@@ -52,6 +53,7 @@ def main():
         {"run_name": f"full_higher_lr", "lr": 2e-5, "epochs": 1, "batch_size": 2, "full_train": True},
         {"run_name": f"full_larger_batch", "lr": 1e-5, "epochs": 1, "batch_size": 4, "full_train": True},
         {"run_name": f"full_more_epochs", "lr": 1e-5, "epochs": 2, "batch_size": 2, "full_train": True},
+        {"run_name": f"full_largest_batch", "lr": 1e-5, "epochs": 1, "batch_size": 8, "full_train": True},
     ]
     
     models_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "models"))
