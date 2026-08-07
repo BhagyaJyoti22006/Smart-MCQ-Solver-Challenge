@@ -1,3 +1,4 @@
 *.pyc
 /wandb
 /models
+/deployment/pretrained_qwen2.5-0.5b_model
